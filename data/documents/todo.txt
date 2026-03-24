@@ -1,0 +1,9 @@
+tor darknet
+пифагорейцы
+ричард столлман, стив возняк
+pig latin
+
+как запустить LLM
+https://habr.com/ru/articles/948934/?ysclid=mkwbygkylk305886373#3
+
+https://github.com/danielmiessler

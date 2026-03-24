@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  ollama:
+    build: ./ollama
+    container_name: ollama-service
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - rag-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [cpu]
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb-service
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks:
+      - rag-network
+    restart: unless-stopped
+    environment:
+      - IS_PERSISTENT=TRUE
+
+  chatbot:
+    build: ./chatbot
+    container_name: chatbot-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/documents:/app/documents
+      - chatbot_logs:/app/logs
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - CHROMA_HOST=http://chromadb:8000
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - LLM_MODEL=qwen3:4b
+    depends_on:
+      - ollama
+      - chromadb
+    networks:
+      - rag-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: frontend-service
+    ports:
+      - "8501:8501"
+    environment:
+      - CHATBOT_URL=http://chatbot:8000
+    depends_on:
+      - chatbot
+    networks:
+      - rag-network
+    restart: unless-stopped
+
+networks:
+  rag-network:
+    driver: bridge
+
+volumes:
+  ollama_data:
+  chroma_data:
+  chatbot_logs:
