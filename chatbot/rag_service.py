@@ -74,7 +74,7 @@ class RAGService:
             loader = DirectoryLoader(
                 path=path,
                 glob="**/*.txt",
-                show_errors=True
+                silent_errors=True
             )
             documents = loader.load()
             
